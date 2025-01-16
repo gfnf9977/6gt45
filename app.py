@@ -28,6 +28,26 @@ def get_users():
         if 'conn' in locals():
             conn.close()
 
+@app.route('/api/users', methods=['POST'])
+def add_user():
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        if not username:
+            return jsonify({'error': 'Ім\'я користувача є обов\'язковим'}), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO users (username) VALUES (?)", username)
+        conn.commit()
+        return jsonify({'message': 'Користувача додано успішно'}), 201
+    except pyodbc.Error as e:
+        print(f"Помилка бази даних: {e}")
+        return jsonify({'error': 'Сталася помилка при додаванні користувача'}), 500
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
 @app.route('/api/users/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
     try:
